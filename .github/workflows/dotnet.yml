@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: jirutka/setup-alpine@v1
+
+      - name: Run script inside Alpine chroot as root
+        run: |
+          cat /etc/alpine-release
+          apk add --no-cache --update --no-progress bash dotnet7-sdk git
+          dotnet --info
+          git clone https://github.com/LagrangeDev/Lagrange.Core.git
+          cd Lagrange.Core
+          dotnet publish Lagrange.OneBot/Lagrange.OneBot.csproj \
+              -c Release \
+              -r linux-arm64 \
+              -o out \
+              --self-contained true \
+              -p:PublishSingleFile=true \
+              -p:IncludeContentInSingleFile=true
+        shell: alpine.sh --root {0}
